@@ -1,4 +1,4 @@
-    public ${entity.className} findById(int id){
+    public ${entity.className} findById(long id){
     	java.util.List<${entity.className}> list = queryRaw(
 				" where " + Properties.Id.columnName
 						+ "=" + id);
