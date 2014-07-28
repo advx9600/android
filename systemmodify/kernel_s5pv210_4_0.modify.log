@@ -1,0 +1,37 @@
+13-11	display 1024*600 freq=40
+13-11   change touchscreen driver
+13-11   rm wifi
+13-12   wm9713 change to that speaker to play  sound make record sound louder
+13-12   add misc aa.c pin-485
+13-12	add camera auto focus
+	case 134217847:
+		 printk("start set autofocus\n");
+                for (i=0;i<sizeof(ov3640_afc_init_reg)/sizeof(ov3640_afc_init_reg[0]);i++)
+                {
+                 err = ov3640_i2c_write(sd, ov3640_afc_init_reg[i],
+                                        sizeof(ov3640_afc_init_reg[i]));
+                if (err < 0)
+                        printk("set ov3640_i2c_write failed!\n");
+                }
+                printk("end set autofocus\n");
+                break;
+01-08	arch/arm/plat-samsung/dev-i2c0.c +51
+	default_i2c_data0 frequency = 400*1000;
+01-08	camera mirror and flip  
+	ov3640.h ov3640_init_reg
+	{0x30,0x7c,0x01},{0x30,0x90,0x8}
+14-03   rongpin keyboard add KEY_BACK button
+	arch/arm/mach-exynos/mach-smdk4x12.c  add  {
+                .code = KEY_BACK,
+                .gpio = EXYNOS4_GPX2(5),
+                .active_low = 1,
+                .wakeup = 1,
+        }     and remove pinrong button
+14-03  rongpin add pwm functioin that can set backlight brightness
+	arch/arm/mach-exynos/mach-smdk4x12.c    
+		smdk4x12_bl_gpio_info = {
+		.no = EXYNOS4_GPD0(1),
+		.func = S3C_GPIO_SFN(2),
+		};
+	drivers/video/samsung/s3cfb_main.c   rm gpio_direction_output(EXYNOS4_GPD0(1), 0);
+14-04 add gt9xx touchscreen driver

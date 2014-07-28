@@ -1,0 +1,8 @@
+opensip.cfg
+	listen=udp:10.1.0.33:5060
+
+	loadmodule "stun.so"
+	modparam("stun","primary_ip","10.1.0.33")
+	modparam("stun","primary_port","5060")
+	modparam("stun","alternate_port","3479")
+	modparam("stun","alternate_ip","10.1.0.43")

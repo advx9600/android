@@ -1,0 +1,87 @@
+12-12 ./jni/pjsip/android_toolchain/pjmedia/Video.mk for compiler static library
+
+12-12 ,static pj_status_t h264_preopen(ffmpeg_private *ff) set pktz_cfg.mode = PJMEDIA_H264_PACKETIZER_MODE_NON_INTERLEAVED
+
+13-01 for video transport when ringing status
+	swig-glue/nativesrc/pjsua_wrap.cpp	+22085
+	SWIGEXPORT jlong JNICALL Java_org_pjsip_pjsua_pjsuaJNI_get_1rx_1data_1is_1dm365(JNIEnv *jenv, jclass jcls, jlong jarg1, jlong jarg2) {
+  int i;
+  const char * comStr=(const char*)"s=doormachine";
+  pjsip_rx_data *ptr = (pjsip_rx_data *) jarg2 ;
+  for (i=0;i<ptr->msg_info.len-strlen(comStr);i++)
+  {
+    if(!strncmp(&ptr->msg_info.msg_buf[i],comStr,strlen(comStr)))
+        return 1;
+  }
+  return 0;
+}
+	UAStateReceiver.java 
+	boolean isDm365 = pjsua.get_rx_data_is_dm365(rdata) > 0 ? true
+						: false;
+				Log.w(THIS_FILE, "isDm365:" + isDm365+",set Answer 183");
+				if (isDm365) {
+					pjService.callAnswer(callId, 183);
+				} else {
+					pjService.callAnswer(callId, 180);
+				}
+
+	UAStateReceiver.java on_incoming_call
+
+13-01 ,jni/pjsip/android_sources/pjmedia/src/pjmedia-audiodev/android_jni_dev.cpp 770
+	inputBuffSizePlay = inputBuffSizePlay >> 1;
+
+13-01 video capture size set to 352*288  cpu cost is less
+13-01 jni/pjsip/android_sources/pjmedia/src/pjmedia-videodev/webrtc_android_render_dev.cpp  +376
+	stream->_videoFrame.SetRenderTime( nowMs + 100);
+
+14-02 SipHome.java  sendFragmentVisibilityChange(int position, boolean visibility)  add  
+	if (visibility) {
+				SipNotifications nManager;
+				switch (position) {
+				case TAB_ID_CALL_LOG:
+					nManager = new SipNotifications(this);
+					nManager.cancelMissedCalls();
+					break;
+				case TAB_ID_MESSAGES:
+					nManager = new SipNotifications(this);
+					nManager.cancelMessages();
+					break;
+				}
+			}
+add com.csipsimple.service add MissedInfoProvider.java
+SipNotifications.java add function
+	private void sendMissedCallBroadcast(int count) {
+		Intent intent = new Intent(NEW_LIFEFORM_DETECTED);
+		Uri uri = Uri
+				.parse("content://com.csipsimple.missedinfo/setMissedCallCount");
+		ContentResolver contentResolver = this.context.getContentResolver();
+		ContentValues conVal = new ContentValues();
+		conVal.put("missedCallCount", count);
+		contentResolver.update(uri, conVal, null, null);
+
+		context.sendBroadcast(intent);
+	}
+
+	private void sendMissedMsgBroadcast(int count) {
+		Intent intent = new Intent(NEW_LIFEFORM_DETECTED);
+		Uri uri = Uri
+				.parse("content://com.csipsimple.missedinfo/setMissedMsgCount");
+		ContentResolver contentResolver = this.context.getContentResolver();
+		ContentValues conVal = new ContentValues();
+		conVal.put("missedMsgCount", count);
+		contentResolver.update(uri, conVal, null, null);
+
+		context.sendBroadcast(intent);
+	}
+14-02	SipNotifications.java for not clean missedinfo data add this function SipService.java and SipNotifications.java replace cancelAll by this function
+	public final void cancelAllNotcleanMissedInfo(){
+		if (isServiceWrapper) {
+			cancelRegisters();
+		}
+		notificationManager.cancel(CALLLOG_NOTIF_ID);
+		notificationManager.cancel(MESSAGE_NOTIF_ID);
+		notificationManager.cancel(VOICEMAIL_NOTIF_ID);
+	}
+14-02	ring sound is not  stability 
+	com.csipsimple.utils.Ringer.java +118   audioManager.setMode(AudioManager.MODE_NORMAL);
+14-02 remvoe speex denoise sound_port.c

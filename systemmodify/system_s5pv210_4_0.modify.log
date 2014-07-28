@@ -1,0 +1,98 @@
+12-00 external/mesa3d/src/glsl/linker.cpp		add	 #include <stddef.h>
+
+//12-00 frameworks/base/policy/src/com/android/internal/policy/impl/KeyguardViewMediator.java +192 mExternallyEnabled = false;
+//12-00 frameworks/base/packages/SettingsProvider/res/values/defaults.xml +21 def_screen_off_timeout to -1
+//12-00 packages/apps/Settings/src/com/android/settings/DisplaySettings.java +95 add mScreenTimeoutPreference.setEnabled(false);
+13-01	touchscreen dispatcher
+	frameworks/base/services/input/InputDispatcher.cpp +392
+	if (mPendingEvent->type != EventEntry::TYPE_MOTION){ // nwz
+                dropReason = DROP_REASON_POLICY;
+        }
+
+12-00 add wifi module
+service wpa_supplicant /system/bin/wpa_supplicant -Dnl80211 -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
+    socket wpa_wlan0 dgram 660 wifi wifi
+    group wifi inet
+    disabled
+    oneshot
+service dhcpcd_wlan0  /system/bin/dhcpcd -o domain_name_servers -ABKL
+    class core
+    disabled
+    oneshot
+    group system dhcp
+
+
+12-00 EVENT_HW_PHYCONNECTED	frameworks/base/ethernet/java/android/net/ethernet/EthernetStateTracker.java	add setState
+
+12-00 device/samsung/smdkv210/common/s5p/libcamera/SecCameraHWInterface.cpp	set camera to one
+
+12-00 build/tools/buildinfo.sh build.prop add  ro.opengles.version=131072
+
+12-00 
+chmod 0777 /dev/s3c-mfc
+chmod 0777 /dev/ttySAC0
+chmod 0777 /dev/pin-485
+
+12-00 static library libwifi
+	system/extras/tests/wifi/stress/Android.mk
+	system/netd/Android.mk
+	frameworks/base/core/jni/Android.mk
+
+13-01 drivers/i2c/busses/i2c-s3c2410.c	+532	msleep(1) to udelay(10) write speed up
+
+//drivers/media/video/samsung/fimc/ov3640.h add {0x30,0x7c,0x03},{0x30,0x90,0x8}
+//	ref documents http://d1.ourdev.cn/bbs_upload782111/files_30/ourdev_563054G8G6N1.pd
+
+13-01 drivers/net/dm900.c
+	/*
+        get u-boot phy hw address
+	*/
+	static char* gAddress=NULL;
+	/* in probe function */
+	if (!is_valid_ether_addr(ndev->dev_addr) && gAddress!=NULL){
+                mac_src="uboot data";
+                strncpy(strbuf,gAddress,sizeof(strbuf));
+                for (i=0;i<17;i++)
+                        if(strbuf[i]>='A'&&strbuf[i]<='Z') strbuf[i]=strbuf[i]-'A'+10;
+                        else if (strbuf[i]>='a' && strbuf[i]<='z') strbuf[i]=strbuf[i]-'a'+10;
+                        else strbuf[i]=strbuf[i]-'0';
+
+                for (i=0;i<6;i++)
+                        ndev->dev_addr[i]=(strbuf[i*3]<<4)+strbuf[i*3+1];
+        }
+
+	static int __init param_mac_setup(char *str)
+	{
+		printk("mac:%s\n",str);
+		gAddress=str;
+		return 0;
+	}
+
+	module_init(dm9000_init);
+	__setup("mac=", param_mac_setup); // must after module_init
+
+14-02  change LockScreen to CircleLockScreen
+14-02  change brightness min value  http://my.oschina.net/armsky/blog/40935
+	frameworks/base/core/res/res/values/config.xml config_screenBrightnessDim set to 100
+	frameworks/base/core/java/android/os/Power.java public static final int BRIGHTNESS_DIM = 100
+	packages/apps/Settings/src/com/android/settings/widget/SettingsAppWidgetProvider.java   private static final int DEFAULT_BACKLIGHT = (int) (android.os.Power.BRIGHTNESS_ON * 0.8f);  private static final int HALF_BRIGHTNESS_THRESHOLD = (int) (0.4 * MAXIMUM_BACKLIGHT);
+	
+14-02  change keyguard lock delay time after screen turn off
+	KeyguardViewMediator.java private static final int KEYGUARD_LOCK_AFTER_DELAY_DEFAULT = 0;
+14-02  lockscreen cancel battery info display
+	KeyguardUpdateMonitor.java public boolean shouldShowBatteryInfo(){return false;}
+14-02 systemui default set status bar hide
+	packages/apps/Settings/src/com/android/settings/cyanogenmod/StatusBar.java
+	frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/BatteryController.java
+	Settings.System.getInt(getActivity().getApplicationContext().getContentResolver(), Settings.System.STATUS_BAR_BATTERY, 0); set 0 to 2
+14-02 remove systemui mobile icon
+	frameworks/base/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkController.java
+	mHasMobileDataFeature = false;
+14-02 remove when screen lock system display "No Internet Connection"
+	frameworks/base/packages/SystemUI/statusbar/policy/NetworkController.java +961
+	 if (mWifiEnabled) label = context.getString(R.string.status_bar_settings_signal_meter_disconnected); else label="";
+14-03	change rongpin board animation abnormal
+	frameworks/base/services/java/com/android/server/wm/ScreenRotationAnimation.java +92     mWidth = originalHeight; mHeight = originalWidth;
+14-03	rongpin board need to add flow to prevent deep sleep
+	 PowerManager pm = (PowerManager)getSystemService(Context.POWER_SERVICE); WakeLock lk=pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "music");lk.acquire();
+

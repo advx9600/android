@@ -1,0 +1,8 @@
+set bootdelay to 0 and skipCalibrat
+	1,include/configs/smdkv210single.h  CONFIG_BOOTDELAY        0
+	2,CONFIG_BOOTARGS         "console=ttySAC2,115200 init=/init skipCalibrate"
+
+lib_arm/bootm.c
+	char *buf1 = malloc(1024);
+        sprintf(buf1, "%s mac=%s", getenv ("bootargs"), getenv ("ethaddr"));
+        setup_commandline_tag (bd, buf1);

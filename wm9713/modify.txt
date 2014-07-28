@@ -1,0 +1,28 @@
+sound/soc/codecs/wm9713.c +960
+
+  #if 1				speaker have sound
+//  ac97_write(codec, AC97_EXTENDED_MSTATUS, 0xb992);
+//  ac97_write(codec, AC97_REC_GAIN, 0x12aa);
+  ac97_write(codec, AC97_REC_GAIN, 0x12aa); // 0x1C
+  //ac97_write(codec, AC97_MASTER, 0x0808); // 0x02
+  ac97_write(codec, AC97_MASTER, 0x0008); // 0x02 spek volumn
+  ac97_write(codec, 0x0C, 0x0000); // ADC
+  ac97_write(codec, 0x12, 0x4018); // reduce record audio amplifier
+//  ac97_write(codec, 0x20, 0x8000); // bass
+//  ac97_write(codec, 0x62, 0x9); // noise gate
+  #endif
+  
+  #if 1				
+		// make sound to speaker
+  ac97_write(codec, 0x0C, 0x6000);
+  //ac97_write(codec, 0x1C, 0x1200);
+  ac97_write(codec, 0x1C, 0x12aa); // write 0x12aa is prefered 0x1200 may save sound like pipi
+		//record ALC function
+  ac97_write(codec, 0x62, 0xFEC0); // ALC
+  ac97_write(codec, 0x60, 0xF832); // ALC
+  #endif
+
+14-02
+	not ALC function but louder recorder volumn
+	ac97_write(codec, 0x62, 0x0000);
+        ac97_write(codec, 0x12, 0x3F00);
