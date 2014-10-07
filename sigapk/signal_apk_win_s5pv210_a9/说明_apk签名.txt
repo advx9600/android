@@ -1,0 +1,18 @@
+1,开发环境:安装python
+
+2,包名必须以 com.s5pv210.system 开头
+
+
+3,AndroidManifest.xml增加
+	android:sharedUserId="android.uid.system"
+   使其成为系统权限
+   
+   example
+		<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+		package="com.s5pv210.system"
+		android:versionCode="1"
+		android:sharedUserId="android.uid.system"
+		android:versionName="1.0.2.33" >
+				
+								
+4,清空重新生成 bin/目录下的apk, 把apk文件拖到 signal_apk.py上面,会对应apk目录生成 .out.apk文件
