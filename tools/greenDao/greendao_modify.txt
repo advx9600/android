@@ -1,3 +1,13 @@
+add ExtraDaoMater.onCreate(db, con);
+	dao-master.ftl  
+	class OpenHelper add 
+		private Context con;
+	function OpenHelper add
+		this.con = context;
+	class OpenHelper last onCreate add
+		ExtraDaoMater.onCreate(db, con);
+
+	
 add findById(int id)
 	dao.ftl
 	public ${entity.className} findById(long id){
