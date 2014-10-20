@@ -7,6 +7,18 @@ add ExtraDaoMater.onCreate(db, con);
 	class OpenHelper last onCreate add
 		ExtraDaoMater.onCreate(db, con);
 
+	Schema.java
+	private String extraDaoImport;
+	public String getExtraDaoImport() {
+		return extraDaoImport;
+	}
+
+	public void setExtraDaoImport(String extraDaoImport) {
+		this.extraDaoImport = extraDaoImport;
+	}	
+	
+	dao-master.ftl
+	<#if schema.extraDaoImport??>import ${schema.extraDaoImport};</#if>
 	
 add findById(int id)
 	dao.ftl
