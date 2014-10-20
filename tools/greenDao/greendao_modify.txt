@@ -1,0 +1,34 @@
+add findById(int id)
+	dao.ftl
+	public ${entity.className} findById(long id){
+		java.util.List<${entity.className}> list = queryRaw(
+		" where " + Properties.Id.columnName
+		+ "=" + id);
+		if (list.size()>0){
+		return list.get(0);
+		}
+		return null;
+	}
+
+add setDefaultValue(String val);
+
+	Property.java	
+		private Object defVal;
+		public String getDefVal() {
+		return defVal;
+		}
+		public PropertyBuilder setDefVal(Object defVal) {
+			switch (property.getPropertyType()) {
+			case String:
+				property.defVal = "\"" + defVal.toString() + "\"";
+				break;
+			default:
+				property.defVal = defVal.toString();
+				break;
+			}
+			return this;
+		}
+
+
+	entry.ftl
+		private ${property.javaType} ${property.propertyName}<#if property.defVal??>=${property.defVal}</#if>;
