@@ -57,4 +57,20 @@ public class Util {
 				intent, PackageManager.MATCH_DEFAULT_ONLY);
 		return resolveInfo.activityInfo;
 	}
+	
+	
+	public void setStatusExample(long status) {
+		// TODO Auto-generated method stub
+		int bit1Count = 0;
+		for (int i = 0; i < 3; i++) {
+			if ((status & (0x1 << i)) > 0) {
+				bit1Count++;
+			}
+		}
+		if (bit1Count > 1) {
+			mStatus &= status;
+		} else {
+			mStatus |= status;
+		}
+	}
 }
