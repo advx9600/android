@@ -58,6 +58,30 @@ public class Util {
 		return resolveInfo.activityInfo;
 	}
 	
+	/*
+	 * 
+	*/
+	public static String getResponse(String url) {
+		String responseStr = "";
+		try {
+			HttpClient httpclient = new DefaultHttpClient();
+			HttpResponse response = httpclient.execute(new HttpGet(url));
+			StatusLine statusLine = response.getStatusLine();
+			if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				response.getEntity().writeTo(out);
+				out.close();
+				responseStr = out.toString();
+				// ..more logic
+			} else {
+				// Closes the connection.
+				response.getEntity().getContent().close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return responseStr;
+	}
 	
 	public void setStatusExample(long status) {
 		// TODO Auto-generated method stub
