@@ -61,9 +61,9 @@ CPPFLAGS+= -I../../../external/zlib
 CPPFLAGS+= -I./openssl/openssl-1.0.2a/_install/include
 
 CFLAGS+= -O2 -g -Wall -Wno-unused-parameter
-#LDFLAGS= -static # this has to removed
-LIBS= -lrt -lpthread -ldl
-LIBS+= -L./openssl/openssl-1.0.2a/_install/lib -lssl -lcrypto 
+LDFLAGS= -static # this has to removed
+LIBS= -lrt -lpthread
+LIBS+= -L./openssl/openssl-1.0.2a/_install/lib -lssl -lcrypto  -ldl
 
 TOOLCHAIN= /home/abc/Public/compiler/toolschain/4.4.3/bin/arm-none-linux-gnueabi-
 
