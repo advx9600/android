@@ -1,5 +1,9 @@
 package com.luke.app.sales.service;
 
+import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -8,6 +12,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -15,8 +20,11 @@ import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.luke.app.R;
 import com.luke.app.a;
+import com.luke.app.commons.utils.AuthorityUtil;
 import com.luke.app.sales.data.UpdateJsonCls;
+import com.luke.app.sales.ui.HotelList.HotelListActivity;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -50,20 +58,11 @@ public class UpdateAppService {
     private static final String UPDATE_JSON_URL = "http://zjjd.myhiott.com:8081/upgrade/default/apks/lukephone/update.json";
     private static final String UPDATE_SAVE_FILE = Environment.getExternalStorageDirectory().getPath() + "/Download/lukephone.apk";
 
-    private static final String UPDATE_JSON_URL_DEBUG = "http://zjjd.myhiott.com:8081/upgrade/default/apks/lukephone/update_debug.json";
-    private static final String UPDATE_SAVE_FILE_DEBUG = Environment.getExternalStorageDirectory().getPath() + "/Download/lukephone_debug.apk";
-
     private Context mCon;
-    private boolean debugMode = false;
-
-    public void setDebugMode(boolean isDebug) {
-        debugMode = isDebug;
-    }
-
     private UpdateAppSerivceBase mBase;
 
-    private void delFile() {
-        File file = new File(debugMode ? UPDATE_SAVE_FILE_DEBUG : UPDATE_SAVE_FILE);
+    private void delFile(UpdateJsonCls update) {
+        File file = new File(update.getSaveFile());
         if (file.exists()) file.delete();
     }
 
@@ -75,7 +74,7 @@ public class UpdateAppService {
             public Object convertResult(String msg) throws Exception {
                 UpdateJsonCls updateJson = JSON.parseObject(msg, UpdateJsonCls.class);
                 updateJson.setOldVersion(getAPPVersion(mCon));
-                updateJson.setSaveFile(debugMode ? UPDATE_SAVE_FILE_DEBUG : UPDATE_SAVE_FILE);
+                updateJson.setSaveFile(UPDATE_SAVE_FILE);
                 return updateJson;
             }
         });
@@ -83,7 +82,7 @@ public class UpdateAppService {
 
     // 检测升级文件
     public void downloadDescription(final UpdateAppSerivceBase.CallbackBase callback) {
-        mBase.startDownDescription(callback, debugMode ? UPDATE_JSON_URL_DEBUG : UPDATE_JSON_URL);
+        mBase.startDownDescription(callback, UPDATE_JSON_URL);
     }
 
     // 取消下载描述文件
@@ -96,12 +95,43 @@ public class UpdateAppService {
         boolean isNeedUpdate = false;
         if (updateJson != null) isNeedUpdate = updateJson.isNeedUpdate();
 
-        if (!isNeedUpdate) delFile();
+        if (!isNeedUpdate) delFile(updateJson);
 
         return isNeedUpdate;
     }
 
+
+    //    private Button update,cancel;
+    private static int NOTIFY_ID = 10;
+    private NotificationManager manager;
+    private Notification notif;
+
+    private void startNotify() {
+        Intent intent = new Intent();
+
+        PendingIntent pIntent = PendingIntent.getActivity(mCon, 0, intent, 0);
+        manager = (NotificationManager) mCon.getSystemService(mCon.NOTIFICATION_SERVICE);
+        notif = new Notification();
+        notif.icon = R.mipmap.ic_launcher;
+        notif.tickerText = "下载进度通知";
+        //通知栏显示所用到的布局文件
+        notif.contentView = new RemoteViews(mCon.getPackageName(), R.layout.notify_download);
+        notif.contentIntent = pIntent;
+        manager.notify(NOTIFY_ID, notif);
+    }
+
+    private void setNotify(int percent) {
+        notif.contentView.setTextViewText(R.id.content_view_text1, percent + "%");
+        notif.contentView.setProgressBar(R.id.content_view_progress, 100, percent, false);
+        manager.notify(NOTIFY_ID, notif);
+    }
+
+    private void stopNotify() {
+        manager.cancel(NOTIFY_ID);
+    }
+
     public void startDownload(final UpdateJsonCls updateJson, final UpdateAppSerivceBase.DownFileCallback callback) {
+        startNotify();
         mBase.startDownload(updateJson.getAppUrl(), updateJson.getSaveFile(), Long.parseLong(updateJson.getSize()), updateJson, new UpdateAppSerivceBase.DownFileCallback() {
             @Override
             public boolean isCheckOk() throws Exception {
@@ -125,23 +155,34 @@ public class UpdateAppService {
             @Override
             public void onRoomNotEnough() {
                 callback.onRoomNotEnough();
+                stopNotify();
+            }
+
+            @Override
+            public void onAlreadyDown() {
+                callback.onAlreadyDown();
+                stopNotify();
             }
 
             @Override
             public void onLoading(long total, long current, boolean isUploading) {
                 callback.onLoading(total, current, isUploading);
+                if (total > 0)
+                    setNotify((int) (current * 100 / total));
             }
 
             @Override
             public void onFailed(String err) {
                 callback.onFailed(err);
 
-                delFile();
+                delFile(updateJson);
+                stopNotify();
             }
 
             @Override
             public void onSuccess(Object object) {
                 callback.onSuccess(object);
+                stopNotify();
             }
         });
     }
