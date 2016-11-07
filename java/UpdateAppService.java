@@ -67,6 +67,29 @@ public class UpdateAppService {
     }
 
 
+
+  public void checkHours(){
+      try {
+            SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+            Date date = df.parse("2016/01/01");
+            long curTime = System.currentTimeMillis();
+            if (curTime < date.getTime()) {
+                Log.e(TAG,"得到当前时间错误");
+                return;
+            }
+
+            long lastTime = mPref.getLastCheckUpdateTime();
+            /* 启动超过12小时更新一次 */
+            if (curTime - lastTime < 3600 * 12 * 1000) {
+                return;
+            }
+            mPref.setLastCheckUpdateTime(curTime);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+    }
+
     public UpdateAppService(Context context) {
         mCon = context;
         mBase = new UpdateAppSerivceBase(new UpdateAppSerivceBase.CallbackConvert() {
