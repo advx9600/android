@@ -56,7 +56,7 @@ public class UpdateAppSerivceBase {
     }
 
     // 检测升级文件JSON
-    public void startDownDescription(final CallbackBase callback, String urlFile) {
+    public void startDownDescription(String urlFile, final CallbackBase callback) {
         try {
             RequestParams params = new RequestParams(urlFile);
             //设置断点续传
